@@ -34,6 +34,47 @@ jobs:
           name: build-${{ matrix.arch }}
           path: ./result/*
 
+  process-and-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Changes between Tags
+        id: changes
+        uses: simbo/changes-between-tags-action@v1
+
+      - name: Create changelog file
+        run: |
+          echo "${{ steps.changes.outputs.changes }}" > CHANGELOG.txt
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: enclaves-blobs/
+
+      - name: Install pixz
+        run: sudo apt-get install -y pixz
+
+      - name: Create combined archive
+        run: tar c enclaves-blobs | pixz > enclaves-blobs.txz
+
+      - name: Update release with artifacts and changelog
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: false
+          body_path: CHANGELOG.txt
+          generate_release_notes: true
+          make_latest: true
+          files: enclaves-blobs.txz
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
   upload-to-s3:
     needs: build
     strategy:
