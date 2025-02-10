@@ -3,12 +3,7 @@ run-name: PR Build for both architectures
 
 on:
   pull_request:
-  push:
-    branches:
-      - '**'
-    tags-ignore:
-      - 'v*'  # Ignore version tags
-
+    
 jobs:
   build:
     strategy:
