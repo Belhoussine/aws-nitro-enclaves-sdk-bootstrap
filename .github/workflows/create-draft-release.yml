@@ -37,7 +37,7 @@ jobs:
           name: build-${{ matrix.arch }}
           path: ./result/*
 
-  create-draft:
+  create-release-draft:
     needs: build
     permissions: write-all
     runs-on: ubuntu-latest
